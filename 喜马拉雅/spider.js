@@ -10,10 +10,13 @@ var tools = {
     get_time: function () {
         return new Date().getTime()
     },
+    get_ua:function(){
+        return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36'
+    },
     get_server_time: async function () {
         res = await superagent.get('https://www.ximalaya.com/revision/time')
             .set({
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36'
+                'User-Agent': tools.get_ua()
             })
         return res.text
     },
@@ -36,7 +39,7 @@ async function getTracksList(albumId, pageNum) {
     var xm_sign = await get_xm_sign();
     var res = await superagent.get(url, xm_sign)
         .set({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36',
+            'User-Agent': tools.get_ua(),
             'xm-sign': xm_sign
         })
     return JSON.parse(res.text)
@@ -48,7 +51,7 @@ async function track_pay(trackId) {
     var xm_sign = await get_xm_sign();
     var track_pay_res = await superagent.get(url, xm_sign)
         .set({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36',
+            'User-Agent': tools.get_ua(),
             'xm-sign': xm_sign,
             'cookie': YouCookie
         })
@@ -72,7 +75,7 @@ function downloadFileAsync(uri, dest) {
         // 确保dest路径存在
         const file = fs.createWriteStream(dest);
         var res_data = superagent.get(uri).set(
-            { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36' }
+            { 'User-Agent': tools.get_ua() }
         )
 
         file.on('finish', () => {
@@ -108,10 +111,10 @@ async function get_one_page(albumId, pageNum, start_index) {
             var whole_src = decrypt_xm.get_whole_url(track_pay_res)
             var index_string = index + ''
             /* 填充index */
-            index_string = index_string.padStart(3, '0')
-            var name = index_string + ' ' + title + '.m4a'
+            index_string = index_string.padStart(4, '0')
+            var name = 'data/'+index_string + ' ' + title + '.m4a'
             // await downloadFileAsync(whole_src, name)
-            
+            console.log(whole_src)
             /* 几乎同时发起两个下载请求，等待第二个返回后发起下两个 */
             if(i % 2===0){
                 downloadFileAsync(whole_src,name)
@@ -132,6 +135,7 @@ async function get_one_page(albumId, pageNum, start_index) {
 var config = fs.readFileSync('config.json');
 config = JSON.parse(config);
 var YouCookie = config.YouCookie;
+console.log(YouCookie)
 
 !async function () {
     /* albumId有声书id */
